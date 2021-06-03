@@ -43,7 +43,7 @@ Diese verschlüsselte Zahl wird dann im folgenden zurück gegeben. Der Code hier
 
 ```Haskell
 encryptSingle :: (Integer, Integer) -> Integer -> Integer
-encryptSingle key num = mod (num ^ get_1 key) $ get_2 key
+encryptSingle (e, n) num = mod (num ^ e) n
 ```
 
 Die Encrypt-Funktion nimmt, im Unterschied zur Encrypt-Funktion, als Parameter den Öffentlichen Schlüssel und eine Liste von Zahlen, 
@@ -66,5 +66,5 @@ decrypt key []      = []
 decrypt key (x:xs)  = decryptSingle key x : decrypt key xs 
 
 decryptSingle :: (Integer, Integer) -> Integer -> Integer
-decryptSingle key cipher = mod (cipher ^ get_1 key) $ get_2 key
+decryptSingle (d, n) cipher = mod (cipher ^ d) n
 ```
