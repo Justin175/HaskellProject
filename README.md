@@ -56,3 +56,15 @@ encrypt key (x:xs)  = encryptSingle key x : encrypt key xs
 ```
 
 ## Entschlüsseln
+### Algorithmus
+Das Entschlüsseln funktioniert genauso wie das Verschlüsseln, nur mit dem Unterschied, dass statt dem Öffentlichen Schlüssel, der Private Schlüssel benötigt wird.
+Der Quellcode sieht wiefolgt aus:
+
+```Haskell
+decrypt :: (Integer, Integer) -> [Integer] -> [Integer]
+decrypt key []      = []
+decrypt key (x:xs)  = decryptSingle key x : decrypt key xs 
+
+decryptSingle :: (Integer, Integer) -> Integer -> Integer
+decryptSingle key cipher = mod (cipher ^ get_1 key) $ get_2 key
+```
