@@ -1,8 +1,8 @@
 # HaskellProject
 ## Aufgaben
 - [ ] Schlüsselgenerierung
-- [ ] Verschlüsseln
-- [ ] Entschlüsseln
+- [X] Verschlüsseln
+- [X] Entschlüsseln
 
 ## Schlüsselgenerierung
 - [ ] Streng Manuelle Eingabe
@@ -24,6 +24,7 @@
 - p,q,e werden zufällig aus einer Liste gewählt → Zufall herstelle, z.B. durch LCG
 
 ## Verschlüsseln
+### Ablauf
 Angabe des öffentlichen Schlüssels (Datei?, Eingabe in der Konsole)
 Prüfung des Schlüssels
 > Text eingeben
@@ -35,4 +36,35 @@ Prüfung des Schlüssels
 …
 → Ausgabe: Verschlüsselte Datei
 
+### Algorithmus
+Die Verschlüsselung läuft wie folgt ab: Es existierten zwei Methoden, names: encrypt und encryptSingle.
+Die EncryptSingle-Funktion nimmt den Öffentlichen Schlüssel und eine Zahl als Parameter, die im folgenden verschlüsselt werden sollen.
+Diese verschlüsselte Zahl wird dann im folgenden zurück gegeben. Der Code hierzu sieht wiefolgt aus:
+
+```Haskell
+encryptSingle :: (Integer, Integer) -> Integer -> Integer
+encryptSingle key num = mod (num ^ get_1 key) $ get_2 key
+```
+
+Die Encrypt-Funktion nimmt, im Unterschied zur Encrypt-Funktion, als Parameter den Öffentlichen Schlüssel und eine Liste von Zahlen, 
+die verschlüsselt werden sollen. Der Code dieser Funktion sieht wiefolgt aus:
+
+```Haskell
+encrypt :: (Integer, Integer) -> [Integer] -> [Integer]
+encrypt key []      = []
+encrypt key (x:xs)  = encryptSingle key x : encrypt key xs 
+```
+
 ## Entschlüsseln
+### Algorithmus
+Das Entschlüsseln funktioniert genauso wie das Verschlüsseln, nur mit dem Unterschied, dass statt dem Öffentlichen Schlüssel, der Private Schlüssel benötigt wird.
+Der Quellcode sieht wiefolgt aus:
+
+```Haskell
+decrypt :: (Integer, Integer) -> [Integer] -> [Integer]
+decrypt key []      = []
+decrypt key (x:xs)  = decryptSingle key x : decrypt key xs 
+
+decryptSingle :: (Integer, Integer) -> Integer -> Integer
+decryptSingle key cipher = mod (cipher ^ get_1 key) $ get_2 key
+```
