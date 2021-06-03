@@ -7,13 +7,13 @@ erweiteter_euclid a b   | b == 0    = (a, 1, 0)
                                 y = get_2 reku
                                 z = get_3 reku
 
-get_1 :: (Integer, Integer, Integer) -> Integer
+get_1 :: (x, y, z) -> x
 get_1 (x, _, _) = x
 
-get_2 :: (Integer, Integer, Integer) -> Integer
+get_2 :: (x, y, z) -> y
 get_2 (_, y, _) = y
 
-get_3 :: (Integer, Integer, Integer) -> Integer
+get_3 :: (x, y, z) -> z
 get_3 (_, _, z) = z
 
 -- n :: Integer
@@ -22,19 +22,36 @@ get_3 (_, _, z) = z
 -- phiN :: Integer
 -- phiN = 12 * 10
 
-publicKey :: Integer -> Integer -> Integer -> (Integer, Integer)
-publicKey p q e = if (e > 1 && e < phiN && (get_1 (erweiteter_euclid phiN e) == 1)) -- Nachher mit ggT ersetzen, siehe unten
-                  then (e, n) 
-                  else (0, 0)
-                    where
-                        n = p * q -- Später evtl. p, q einlesen und dann N und phiN als ,,globale Variable" (=Konstanten) definieren
-                        phiN = (p - 1) * (q - 1)
-                    --     ggT = (.) get_1 erweiteter_euclid Nochmal gucken wie man das richtig kompositioniert
+-- publicKey :: Integer -> Integer -> Integer -> (Integer, Integer)
+-- publicKey p q e = if (e > 1 && e < phiN && (get_1 (erweiteter_euclid phiN e) == 1)) -- Nachher mit ggT ersetzen, siehe unten
+--                   then (e, n) 
+--                   else (0, 0)
+--                     where
+--                         n = p * q -- Später evtl. p, q einlesen und dann N und phiN als ,,globale Variable" (=Konstanten) definieren
+--                         phiN = (p - 1) * (q - 1)
+--                     --     ggT = (.) get_1 erweiteter_euclid Nochmal gucken wie man das richtig kompositioniert
 
-privateKey :: Integer -> Integer -> Integer -> (Integer, Integer)
-privateKey p q e = (d, n)
+-- privateKey :: Integer -> Integer -> Integer -> (Integer, Integer)
+-- privateKey p q e = (d, n)
+--                         where
+--                             n = p * q
+--                             phiN = (p - 1) * (q - 1)
+--                             d = get_3 (erweiteter_euclid phiN e)
+
+-- p q e -> ((e, n), (d, n), Bool) wobei (e,n) der public und (d, n) der private Key ist. Bool gibt an ob die Generierung erfolgreich war.
+generateKeys :: Integer -> Integer -> Integer -> ((Integer, Integer), (Integer, Integer), Bool)
+generateKeys p q e  | not (isPrime p && isPrime q) 
+                        || not (e > 1 && e < phiN && teilerfremd e phiN) = ((0, 0), (0, 0), False) 
+                    | otherwise = ((e, n), (d, n), True)     
                         where
                             n = p * q
                             phiN = (p - 1) * (q - 1)
-                            d = get_3 (erweiteter_euclid phiN e)
+                            euklidRes = erweiteter_euclid phiN e
+                            teilerfremd = get_1 euklidRes
+                            d = get_3 euklidRes
+                            isPrime = (\n -> True)
+
+
+
+
 
