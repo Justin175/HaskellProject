@@ -24,6 +24,10 @@ charListToAsciiIntegerList list = map (\z -> toInteger $ ord z) list
 intListToIntegerList :: [Int] -> [Integer]
 intListToIntegerList list = map toInteger list
 
+-- Konvertiert eine Liste von Strings zu Zahlen
+stringListToIntegerList :: [String] -> [Integer]
+stringListToIntegerList list = map (\s -> read s ::Integer) list
+
 -- split :: Char -> String -> [String]
 -- split delimiter toSplit = [x | let index <- ]
 --     where
@@ -66,3 +70,17 @@ takePart_ currentIndex from to [] = []
 takePart_ currentIndex from to (x:xs) 
     | currentIndex < from || currentIndex > to = takePart_ (currentIndex + 1) from to xs
     | otherwise = x : takePart_ (currentIndex + 1) from to xs
+
+getPublicKeyFromList :: [Integer] -> (Integer, Integer)
+getPublicKeyFromList [p, n] = (p, n)
+getPublicKeyFromList [p, _, n] = (p, n)
+
+getPrivateKeyFromList :: [Integer] -> (Integer, Integer)
+getPrivateKeyFromList [p, n] = (p, n)
+getPrivateKeyFromList [_, p, n] = (p, n)
+
+integerListToCharString :: [Integer] -> String
+integerListToCharString list = map integerToChar list
+
+integerToChar :: Integer -> Char
+integerToChar n = toEnum (read $ show n :: Int) :: Char

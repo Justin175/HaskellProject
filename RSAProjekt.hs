@@ -67,12 +67,24 @@ optionVerschluesseln = do
     putStrLn ("  Zu Verschlüsselnde-Datei   : " ++ zuVerschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
 
-    -- Lese den Inhalt der Schlüssel-Datei ein
+    -- Öffne Schlüssel-Handler und lese content
     schluesselDateiHandle <- openFile schluesselDatei ReadMode
     schluesselDateiContent <- hGetContents schluesselDateiHandle
+
+    -- Öffne VerschlüsselndeDatei-Handler und lese content
+    zuVerschluesselndeDateiHandler <- openFile zuVerschluesselndeDatei ReadMode
+    zuVerschluesselndeDateiContent <- hGetContents zuVerschluesselndeDateiHandler
+
+    --encrypted <- return getPulblicKeyFromList (stringListToIntegerList (words schluesselDateiContent))
+    writeFile ausgabeDatei (integerListToString (encrypt (getPublicKeyFromList (stringListToIntegerList (words schluesselDateiContent))) (charListToAsciiIntegerList zuVerschluesselndeDateiContent)) " ")
+
+    -- Handler schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
+    hClose zuVerschluesselndeDateiHandler
 
     putStrLn "Die Verschlüsselung wurde erfolgreich abgeschlossen."
+
+test = (integerListToString (encrypt (getPublicKeyFromList (stringListToIntegerList (words "23 47 143"))) [1, 2, 3]) " ")
 
 -- Diese Funktion übernimmt hier die OPTION Entschlüsseln:
 -- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
@@ -90,13 +102,28 @@ optionEntschluesseln = do
     ausgabeDatei <- nichtLeer ausgabeDatei (zuEntschluesselndeDatei ++ ".decry")
     
     putStrLn ""
-    putStrLn "Die Verschlüsselung beginnt nun. Dieser Prozess kann einige Zeit in Anspruch nehmen, bitte haben Sie Geduld."
+    putStrLn "Die Entschlüsselung beginnt nun. Dieser Prozess kann einige Zeit in Anspruch nehmen, bitte haben Sie Geduld."
     putStrLn "Infos:"
     putStrLn ("  Schlüssel-Datei            : " ++ schluesselDatei)
     putStrLn ("  Zu Entschlüsselnde-Datei   : " ++ zuEntschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
 
-    --HIER ENTSCHLÜSSELN HINZUFÜGEN!!!!!!!!!
+   -- Öffne Schlüssel-Handler und lese content
+    schluesselDateiHandle <- openFile schluesselDatei ReadMode
+    schluesselDateiContent <- hGetContents schluesselDateiHandle
+
+    -- Öffne EntschlüsselndeDatei-Handler und lese content
+    zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
+    zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
+
+    --putStrLn ("-- " ++ (show (words zuEntschluesselndeDateiContent)))
+
+    -- Schreibe das Entschlüsselte
+    writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (words schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
+
+    -- Handler schließen (Schlüsseldatei)
+    hClose schluesselDateiHandle
+    hClose zuEntschluesselndeDateiHandler
 
     putStrLn "Die Entschlüsselung wurde erfolgreich abgeschlossen."
 
@@ -117,6 +144,7 @@ frageNachSchluesselDatei = do
     datei <- dateiAbfrage "Geben Sie den Namen / (relativen) Pfad der Datei an, in dem sich der bzw. die Schlüssel befinden."
     return datei
 
+-- Fragt eine Datei ab und gibt die Eingabe des Nutzers wieder
 dateiAbfrage nachricht = do 
     putStrLn nachricht
     datei <- getLine
