@@ -66,7 +66,11 @@ optionVerschluesseln = do
     putStrLn ("  Schlüssel-Datei            : " ++ schluesselDatei)
     putStrLn ("  Zu Verschlüsselnde-Datei   : " ++ zuVerschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
-    --HIER VERSCHLÜSSELN HINZUFÜGEN!!!!!!!!!
+
+    -- Lese den Inhalt der Schlüssel-Datei ein
+    schluesselDateiHandle <- openFile schluesselDatei ReadMode
+    schluesselDateiContent <- hGetContents schluesselDateiHandle
+    hClose schluesselDateiHandle
 
     putStrLn "Die Verschlüsselung wurde erfolgreich abgeschlossen."
 
@@ -91,10 +95,14 @@ optionEntschluesseln = do
     putStrLn ("  Schlüssel-Datei            : " ++ schluesselDatei)
     putStrLn ("  Zu Entschlüsselnde-Datei   : " ++ zuEntschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
-    --HIER VERSCHLÜSSELN HINZUFÜGEN!!!!!!!!!
+
+    --HIER ENTSCHLÜSSELN HINZUFÜGEN!!!!!!!!!
 
     putStrLn "Die Entschlüsselung wurde erfolgreich abgeschlossen."
 
+-- Diese Funktion übernimmt hier die OPTION Schlüssengenerierung:
+-- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
+-- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
 optionGeneriereSchluessel = do
     putStrLn "optionGeneriereSchluessel"
 

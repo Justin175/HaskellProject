@@ -23,3 +23,46 @@ charListToAsciiIntegerList list = map (\z -> toInteger $ ord z) list
 -- Konvertiert eine Int-Liste zu einer Integer-Liste
 intListToIntegerList :: [Int] -> [Integer]
 intListToIntegerList list = map toInteger list
+
+-- split :: Char -> String -> [String]
+-- split delimiter toSplit = [x | let index <- ]
+--     where
+--         laenge = length toSplit
+--         founds = 0 : findAll delimiter toSplit ++ [laenge]
+
+findAll :: (Eq a) => a -> [a] -> [Int]
+findAll toFind list = findAll_ 0 toFind list
+
+findAll_:: (Eq a) => Int -> a -> [a] -> [Int]
+findAll_ currentIndex toFind [] = []
+findAll_ currentIndex toFind (x:xs)
+    | x == toFind   = currentIndex : (findAll_ (currentIndex + 1) toFind xs) 
+    | otherwise     = findAll_ (currentIndex + 1) toFind xs
+
+findNext :: (Eq a) => Int -> a -> [a] -> Int
+findNext from toFind liste = findNext_ 0 from toFind liste
+
+findNext_ :: (Eq a) => Int -> Int -> a -> [a] -> Int
+findNext_ currentIndex from toFind [] = -1
+findNext_ currentIndex from toFind (x:xs)
+    | currentIndex < from || (not $ toFind == x) = findNext_ (currentIndex + 1) from toFind xs
+    | otherwise = currentIndex
+
+findNextMax :: (Eq a) => Int -> a -> [a] -> Int
+findNextMax from toFind liste = findNextMax_ 0 from toFind liste
+
+findNextMax_ :: (Eq a) => Int -> Int -> a -> [a] -> Int
+findNextMax_ currentIndex from toFind [] = currentIndex
+findNextMax_ currentIndex from toFind (x:xs)
+    | currentIndex < from || (not $ toFind == x) = findNextMax_ (currentIndex + 1) from toFind xs
+    | otherwise = currentIndex
+
+-- Nimmt einen Bestimmten Teil einer Liste und gibt diese Zurück
+takePart :: Int -> Int -> [a] -> [a]
+takePart from to list = takePart_ 0 from to list
+
+takePart_ :: Int -> Int -> Int -> [a] -> [a]
+takePart_ currentIndex from to [] = []
+takePart_ currentIndex from to (x:xs) 
+    | currentIndex < from || currentIndex > to = takePart_ (currentIndex + 1) from to xs
+    | otherwise = x : takePart_ (currentIndex + 1) from to xs
