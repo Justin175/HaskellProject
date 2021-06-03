@@ -2,6 +2,7 @@ import System.IO
 import Utils
 import Encryption
 
+-- --------------- PROGRAMM-ABLAUF (BASIS)
 -- Willkommen
 -- Optionen wählen
 --  1. Verschlüsseln
@@ -84,8 +85,6 @@ optionVerschluesseln = do
 
     putStrLn "Die Verschlüsselung wurde erfolgreich abgeschlossen."
 
-test = (integerListToString (encrypt (getPublicKeyFromList (stringListToIntegerList (words "23 47 143"))) [1, 2, 3]) " ")
-
 -- Diese Funktion übernimmt hier die OPTION Entschlüsseln:
 -- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
 -- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
@@ -116,8 +115,6 @@ optionEntschluesseln = do
     zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
     zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
 
-    --putStrLn ("-- " ++ (show (words zuEntschluesselndeDateiContent)))
-
     -- Schreibe das Entschlüsselte
     writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (words schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
 
@@ -131,7 +128,39 @@ optionEntschluesseln = do
 -- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
 -- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
 optionGeneriereSchluessel = do
-    putStrLn "optionGeneriereSchluessel"
+    option <- wahlOptionKeyGenerierung
+    putStrLn ("Sie haben die folgende Option gewählt: " ++ option ++ " [" ++ (schluessenGenerierenOptionenZuString option) ++ "]")
+    putStrLn ""
+    
+    executeOptionSchluesselGenerierung option
+
+-- Hier wird je nach Wahl der Schlüsselgeneration-Option die dazu
+-- gehörende Funktion aufgerufen
+executeOptionSchluesselGenerierung option
+    | option == "" || option == "1" = schluessenGenerierungAutomatisch
+    | option == "2" = schluessenGenerierungEingabePQ
+    | option == "3" = schluessenGenerierungEingabePQE
+
+-- Schlüsselgenerations-Option: [Automatisch]
+-- Hier wird der Schlüssel für den Nutzer Automatisch generiert
+schluessenGenerierungAutomatisch = do
+    putStrLn "Schlüsselgenerierung abgeschlossen."
+
+-- Schlüsselgenerations-Option: [EingabePQE]
+-- Hier wird der Schlüssel für den Nutzer durch Eingabe
+-- beider Primzahlen und des ersten Exponenten.
+schluessenGenerierungEingabePQE = do
+    dateipqe <- dateiAbfrage "Geben Sie den Namen / (relativen) Pfad der Datei an, in der sich die Zahlen P,Q,E (durch ein Leerzeichen getrennt) stehen."
+    
+
+    putStrLn "Schlüsselgenerierung abgeschlossen."
+
+-- Schlüsselgenerations-Option: [EingabePQ]
+-- Hier wird der Schlüssel für den Nutzer durch Eingabe
+-- beider Primzahlen berechnet. Die ermittlung des Exponenten E
+-- erfolgt hierbei Automatisch
+schluessenGenerierungEingabePQ = do
+    putStrLn "Schlüsselgenerierung abgeschlossen."
 
 -- Überprüft, ob der erste String 'eingabe' nicht leer ist.
 -- Ist dies der Fall wird dieser zurückgegeben, ansonsten wird 'sonstigerName' zurückgegeben
@@ -177,3 +206,30 @@ ersteVersionZuString :: String -> String
 ersteVersionZuString n  | n == "1" = "Verschlüsseln"
                         | n == "2" = "Entschlüsseln"
                         | n == "3" = "Schlüssel generieren"
+
+wahlOptionKeyGenerierung = do
+        putStrLn "Wählen Sie nun zwischen den folgenden drei Optionen, um einen Schlüssel zu generieren. Tätigen Sie keine Eingabe, so wird die Option [AUTOMATISCH] gewählt:"
+        putStrLn "[1] Automatisch"
+        putStrLn "[2] Durch Eingabe der Primzahlen p und q durch eine Datei"
+        putStrLn "[3] Durch Eingabe der Primzahlen p/q und des Exponente e durch eine Datei"
+        option <- wahlOptionKeyGenerierungAbfrage False
+        return option
+
+wahlOptionKeyGenerierungAbfrage fehlerufruf 
+    | fehlerufruf = do
+        putStrLn "Ihre Eingabe ist ungültig, bitte versuchen Sie es erneut."
+        wahlOptionKeyGenerierungAbfrage False
+    | otherwise = do
+        putStr "Ihre Wahl: "
+        option <- getLine
+        if not (option == "" || option == "1" || option == "2" || option == "3") 
+            then
+                wahlOptionKeyGenerierungAbfrage True
+        else return option
+
+schluessenGenerierenOptionenZuString :: String -> String
+schluessenGenerierenOptionenZuString n  
+                        | n == "" = "Automatisch"
+                        | n == "1" = "Automatisch"
+                        | n == "2" = "Durch Eingabe der Primzahlen p und q durch eine Datei"
+                        | n == "3" = "Durch Eingabe der Primzahlen p/q und des Exponente e durch eine Datei"
