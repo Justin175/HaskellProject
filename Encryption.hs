@@ -10,7 +10,7 @@ encrypt key (x:xs)  = encryptSingle key x : encrypt key xs
 -- Zweite Parameter nimmt die Zahl, die Verschlüsselt werden soll
 -- RETURN: Verschlüsselte Zahl
 encryptSingle :: (Integer, Integer) -> Integer -> Integer
-encryptSingle key num = mod (num ^ get_1 key) $ get_2 key
+encryptSingle (e, n) num = mod (num ^ e) n
 
 -- Verschlüsselt eine Liste von ganzen Zahlen
 -- Erste Paramenter ist der Öffentliche Schlüssel, hier dargestellt als Tuple
@@ -24,10 +24,4 @@ decrypt key (x:xs)  = decryptSingle key x : decrypt key xs
 -- Zweite Parameter nimmt die Zahl, die Entschlüsselt werden soll
 -- RETURN: Entschlüsselte Zahl
 decryptSingle :: (Integer, Integer) -> Integer -> Integer
-decryptSingle key cipher = mod (cipher ^ get_1 key) $ get_2 key
-
-get_1 :: (x, y) -> x
-get_1 (x, _) = x
-
-get_2 :: (x, y) -> y
-get_2 (_, y) = y
+decryptSingle (d, n) cipher = mod (cipher ^ d) n
