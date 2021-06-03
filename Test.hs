@@ -6,7 +6,8 @@ import Utils
 --digitToInt --> machts beispielsweise 'F' --> 15 oder '9' --> 9, aber NICT 'L' --> ?
 
 main = do
-    withFile "TestContent.txt" ReadMode (\handle -> do
+    withFile "Test.hs" ReadMode (\handle -> do
             contents <- hGetContents handle
-            putStrLn $ integerListToString (charListToAsciiIntegerList contents) " "
+            putStrLn contents
+            --putStrLn $ integerListToString (charListToAsciiIntegerList contents) " "
         )
