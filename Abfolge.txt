@@ -1,0 +1,15 @@
+Schlüsselgenerierung
+
+1. Überprüfe p/q auf Primzahl
+    --> Funktion isPrime erstellen
+
+2. Berechne N / phi(N)
+
+3. Überprüfe ob e teilerfremd zu phi(N) ist
+    --> e mod phi(N) != 0
+
+Schlüsselgenerierung p q e  | !(isPrime p && isPrime q)          = (0, 0, 0)
+                            | !teilerfremd(e, phiN)              = (0, 0, 0)
+                            | otherwise                          = BERECHNE Schlüssel
+                                 where
+                                    phiN = (p - 1) * (q - 1)
