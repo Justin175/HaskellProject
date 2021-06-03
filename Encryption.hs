@@ -4,7 +4,7 @@
 -- RETURN: Liste verschlüsselter Zahlen
 encrypt :: (Integer, Integer) -> [Integer] -> [Integer]
 encrypt key []      = []
-encrypt key (x:xs)  = encryptSingle key x : encrypt key xs 
+encrypt key list    = map (encryptSingle key) list
 
 -- Erste Paramenter ist der Öffentliche Schlüssel, hier dargestellt als Tuple
 -- Zweite Parameter nimmt die Zahl, die Verschlüsselt werden soll
@@ -18,7 +18,7 @@ encryptSingle (e, n) num = mod (num ^ e) n
 -- RETURN: Liste entschlüsselter Zahlen
 decrypt :: (Integer, Integer) -> [Integer] -> [Integer]
 decrypt key []      = []
-decrypt key (x:xs)  = decryptSingle key x : decrypt key xs 
+decrypt key list    = map (decryptSingle key) list
 
 -- Erste Paramenter ist der Private Schlüssel, hier dargestellt als Tuple
 -- Zweite Parameter nimmt die Zahl, die Entschlüsselt werden soll
