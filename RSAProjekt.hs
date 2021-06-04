@@ -130,8 +130,8 @@ optionEntschluesseln = do
 -- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
 optionGeneriereSchluessel = do
     putStrLn "Wenn Sie ENTER drücken, werden automatisch die beiden Schlüssel generiert."
-    putStrLn "Sie können jedoch auch eigene Primzahlen p, q und optional eine Zahl e mit ggT(e, phi(p*q)) = 1 wählen. 
-        Dazu geben Sie den Dateinamen an, in der diese Zahlen mit einem Leerzeichen getrennt hintereinander stehen"
+    putStrLn "Sie können jedoch auch eigene Primzahlen p, q und optional eine Zahl e mit ggT(e, phi(p*q)) = 1 wählen." 
+    putStrLn "Dazu geben Sie den Dateinamen an, in der diese Zahlen mit einem Leerzeichen getrennt hintereinander stehen"
     typeOfKeyGen <- getLine
     putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
 
@@ -139,8 +139,8 @@ optionGeneriereSchluessel = do
         then do
             schluessenGenerierungAutomatisch
         else do
-            -- Content der Datei mit den Primzahlen (+ ggf. e) einlesen
-            if(length $ words dateiContent == 2) -- Nur p und q stehen drinne
+            dateiContent <- readFile typeOfKeyGen -- Content der Datei mit den Primzahlen (+ ggf. e) einlesen
+            if((length $ words dateiContent) == 2) -- Nur p und q stehen drinne
                 then do
                     schluessenGenerierungEingabePQ
                 else do -- p,q und e stehen drinne
