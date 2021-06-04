@@ -76,5 +76,3 @@ generateKeys p q e  | not (isPrime p && isPrime q)
 
 -- isTest :: Integer -> Bool
 -- isTest n = not (elem True (map (\x -> mod n x == 0) [k | k <- [2.. div n 2]]))
-
-
