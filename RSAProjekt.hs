@@ -78,7 +78,7 @@ optionVerschluesseln = do
     zuVerschluesselndeDateiContent <- hGetContents zuVerschluesselndeDateiHandler
 
     --encrypted <- return getPulblicKeyFromList (stringListToIntegerList (words schluesselDateiContent))
-    writeFile ausgabeDatei (integerListToString (encrypt (getPublicKeyFromList (stringListToIntegerList (words schluesselDateiContent))) (charListToAsciiIntegerList zuVerschluesselndeDateiContent)) " ")
+    writeFile ausgabeDatei (integerListToString (encrypt (getPublicKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (charListToAsciiIntegerList zuVerschluesselndeDateiContent)) " ")
 
     -- Handler schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
@@ -117,7 +117,7 @@ optionEntschluesseln = do
     zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
 
     -- Schreibe das Entschlüsselte
-    writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (words schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
+    writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
 
     -- Handler schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
