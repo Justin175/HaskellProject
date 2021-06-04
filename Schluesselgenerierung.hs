@@ -1,3 +1,5 @@
+import Data.Time.Clock
+
 erweiteter_euclid :: Integer -> Integer -> (Integer, Integer, Integer)
 erweiteter_euclid a b   | b == 0    = (a, 1, 0) 
                         | otherwise = (x, z, y - div a b * z)
@@ -38,10 +40,10 @@ get_3 (_, _, z) = z
 --                             phiN = (p - 1) * (q - 1)
 --                             d = get_3 (erweiteter_euclid phiN e)
 
--- p q e -> ((e, n), (d, n), Bool) wobei (e,n) der public und (d, n) der private Key ist. Bool gibt an ob die Generierung erfolgreich war.
+--p q e -> ((e, n), (d, n), Bool) wobei (e,n) der public und (d, n) der private Key ist. Bool gibt an ob die Generierung erfolgreich war.
 generateKeys :: Integer -> Integer -> Integer -> ((Integer, Integer), (Integer, Integer), Bool)
 generateKeys p q e  | not (isPrime p && isPrime q) 
-                        || not (e > 1 && e < phiN && teilerfremd e phiN) = ((0, 0), (0, 0), False) 
+                        || not (e > 1 && e < phiN && teilerfremd == 1) = ((0, 0), (0, 0), False) 
                     | otherwise = ((e, n), (d, n), True)     
                         where
                             n = p * q
@@ -51,7 +53,28 @@ generateKeys p q e  | not (isPrime p && isPrime q)
                             d = get_3 euklidRes
                             isPrime = (\n -> True)
 
+-- fakultaet :: Integer -> Integer
+-- fakultaet 0 = 1
+-- fakultaet n = n * fakultaet (n - 1) 
 
+-- binoRechner :: (Integer, Integer) -> Integer
+-- binoRechner (n, k) = fakultaet n `div` (fakultaet k * fakultaet (n - k))
 
+-- binoRechnerJr :: (Integer, Integer, Integer) -> Integer
+-- binoRechnerJr (nFak, k, n) = nFak `div` (fakultaet k * fakultaet (n - k))
+
+-- binoList :: Integer -> [Integer]
+-- binoList n  = [binoRechnerJr (nFak, k, n) | k <- [2..(n-1)]]
+--                 where
+--                     nFak = fakultaet n
+
+-- integerToFloating :: Integer -> Float
+-- integerToFloating x = read (show x) :: Float
+
+-- isPrime :: Integer -> Bool
+-- isPrime n = mod  (sum (binoList n)) n == 0
+
+-- isTest :: Integer -> Bool
+-- isTest n = not (elem True (map (\x -> mod n x == 0) [k | k <- [2.. div n 2]]))
 
 

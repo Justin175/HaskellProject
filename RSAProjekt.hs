@@ -2,6 +2,7 @@ import System.IO
 import Utils
 import Encryption
 
+
 -- --------------- PROGRAMM-ABLAUF (BASIS)
 -- Willkommen
 -- Optionen wählen
@@ -128,29 +129,35 @@ optionEntschluesseln = do
 -- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
 -- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
 optionGeneriereSchluessel = do
-    option <- wahlOptionKeyGenerierung
-    putStrLn ("Sie haben die folgende Option gewählt: " ++ option ++ " [" ++ (schluessenGenerierenOptionenZuString option) ++ "]")
-    putStrLn ""
-    
-    executeOptionSchluesselGenerierung option
+    putStrLn "Wenn Sie ENTER drücken, werden automatisch die beiden Schlüssel generiert."
+    putStrLn "Sie können jedoch auch eigene Primzahlen p, q und optional eine Zahl e mit ggT(e, phi(p*q)) = 1 wählen. 
+        Dazu geben Sie den Dateinamen an, in der diese Zahlen mit einem Leerzeichen getrennt hintereinander stehen"
+    typeOfKeyGen <- getLine
+    putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
 
--- Hier wird je nach Wahl der Schlüsselgeneration-Option die dazu
--- gehörende Funktion aufgerufen
-executeOptionSchluesselGenerierung option
-    | option == "" || option == "1" = schluessenGenerierungAutomatisch
-    | option == "2" = schluessenGenerierungEingabePQ
-    | option == "3" = schluessenGenerierungEingabePQE
+    if(typeOfKeyGen == "")
+        then do
+            schluessenGenerierungAutomatisch
+        else do
+            -- Content der Datei mit den Primzahlen (+ ggf. e) einlesen
+            if(length $ words dateiContent == 2) -- Nur p und q stehen drinne
+                then do
+                    schluessenGenerierungEingabePQ
+                else do -- p,q und e stehen drinne
+                    schluessenGenerierungEingabePQE 
+
 
 -- Schlüsselgenerations-Option: [Automatisch]
 -- Hier wird der Schlüssel für den Nutzer Automatisch generiert
 schluessenGenerierungAutomatisch = do
+    saveKeys <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
     putStrLn "Schlüsselgenerierung abgeschlossen."
 
 -- Schlüsselgenerations-Option: [EingabePQE]
 -- Hier wird der Schlüssel für den Nutzer durch Eingabe
 -- beider Primzahlen und des ersten Exponenten.
 schluessenGenerierungEingabePQE = do
-    dateipqe <- dateiAbfrage "Geben Sie den Namen / (relativen) Pfad der Datei an, in der sich die Zahlen P,Q,E (durch ein Leerzeichen getrennt) stehen."
+    saveKeys <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
     
 
     putStrLn "Schlüsselgenerierung abgeschlossen."
@@ -160,6 +167,7 @@ schluessenGenerierungEingabePQE = do
 -- beider Primzahlen berechnet. Die ermittlung des Exponenten E
 -- erfolgt hierbei Automatisch
 schluessenGenerierungEingabePQ = do
+    saveKeys <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
     putStrLn "Schlüsselgenerierung abgeschlossen."
 
 -- Überprüft, ob der erste String 'eingabe' nicht leer ist.
