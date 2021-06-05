@@ -84,3 +84,6 @@ integerListToCharString list = map integerToChar list
 
 integerToChar :: Integer -> Char
 integerToChar n = toEnum (read $ show n :: Int) :: Char
+
+quadupleToKeyString :: (Show a, Show b, Show c) => (a, b, c, d) -> String
+quadupleToKeyString (x, y, z, _) = show x ++ "\n" ++ show y ++ "\n" ++ show z

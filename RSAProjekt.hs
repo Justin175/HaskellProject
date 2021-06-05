@@ -1,7 +1,9 @@
 import System.IO
 import Utils
 import Encryption
-
+import RandomUtils
+import Schluesselgenerierung
+import Data.Time.Clock
 
 -- --------------- PROGRAMM-ABLAUF (BASIS)
 -- Willkommen
@@ -111,14 +113,14 @@ optionEntschluesseln = do
    -- Öffne Schlüssel-Handler und lese content
     schluesselDateiHandle <- openFile schluesselDatei ReadMode
     schluesselDateiContent <- hGetContents schluesselDateiHandle
-
+    putStrLn "1"
     -- Öffne EntschlüsselndeDatei-Handler und lese content
     zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
     zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
-
+    putStrLn "2"
     -- Schreibe das Entschlüsselte
     writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
-
+    putStrLn "3"
     -- Handler schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
     hClose zuEntschluesselndeDateiHandler
@@ -131,47 +133,64 @@ optionEntschluesseln = do
 optionGeneriereSchluessel = do
     putStrLn "Wenn Sie ENTER drücken, werden automatisch die beiden Schlüssel generiert."
     putStrLn "Sie können jedoch auch eigene Primzahlen p, q und optional eine Zahl e mit ggT(e, phi(p*q)) = 1 wählen." 
-    putStrLn "Dazu geben Sie den Dateinamen an, in der diese Zahlen mit einem Leerzeichen getrennt hintereinander stehen"
-    typeOfKeyGen <- getLine
-    putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
+    putStrLn "Dazu geben Sie den Dateinamen an, in der diese Zahlen untereinander stehen"
+    primzahlDatei <- getLine
+    speicherSchluessel <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
+    speicherAuswahl <- nichtLeer speicherSchluessel "rsaKeys.txt"
 
-    if(typeOfKeyGen == "")
+    if(primzahlDatei == "")
         then do
-            schluessenGenerierungAutomatisch
+            utc1 <- getCurrentTime
+            putStrLn "Schlüssel werden nun generiert"
+            utc2 <- getCurrentTime
+            putStrLn ("Sie werden in " ++ speicherAuswahl ++ " gespeichert") 
+            utc3 <- getCurrentTime
+
+            let rand1 = fromIntegral (rng (utcToInteger (show utc1)) (0, toInteger (length primes - 1)))
+                rand2 = fromIntegral (rng (utcToInteger (show utc2)) (0, toInteger (length primes - 1)))
+                p = primes !! rand1
+                q = primes !! rand2
+                phiN = (p - 1) * (q - 1)
+                listeTeilerdremdZuPhiN = [x | x <- [2.. (phiN - 1)], get_1 (erweiteter_euclid phiN x) == 1]
+                e = listeTeilerdremdZuPhiN !! (fromIntegral (rng (utcToInteger (show utc3)) (0, fromIntegral $ length listeTeilerdremdZuPhiN)))
+            
+            putStrLn (show p ++ " " ++ show q ++ " " ++ show e)
+
+            schluessenGenerierung [p, q, e] speicherAuswahl
         else do
-            dateiContent <- readFile typeOfKeyGen -- Content der Datei mit den Primzahlen (+ ggf. e) einlesen
-            if((length $ words dateiContent) == 2) -- Nur p und q stehen drinne
+            --dateiContent <- readFile typeOfKeyGen -- Content der Datei mit den Primzahlen (+ ggf. e) einlesen
+            -- Öffne Datei mit den Primzahlen und lese den inhalt
+            primzahlDateiHandle <- openFile primzahlDatei ReadMode
+            primzahlDateiContent <- hGetContents primzahlDateiHandle
+
+            let primzahlDateiAlsListe = map (\x -> read x :: Integer) (lines primzahlDateiContent)
+
+            if((length $ primzahlDateiAlsListe) == 2) -- Nur p und q stehen drinne
                 then do
-                    schluessenGenerierungEingabePQ
+                    utc <- getCurrentTime
+
+                    let phiN = (head primzahlDateiAlsListe - 1) * (last primzahlDateiAlsListe - 1)
+                    schluessenGenerierung (take 2 primzahlDateiAlsListe ++ (rng (utcToInteger (show utc)) (1, phiN - 1)) : []) speicherAuswahl
+                        -- where
+                        --     
                 else do -- p,q und e stehen drinne
-                    schluessenGenerierungEingabePQE 
+                    schluessenGenerierung (take 3 primzahlDateiAlsListe) speicherAuswahl
+            hClose primzahlDateiHandle
+
+    putStrLn "Schlüsselgenerierung abgeschlossen."                
 
 
 -- Schlüsselgenerations-Option: [Automatisch]
 -- Hier wird der Schlüssel für den Nutzer Automatisch generiert
-schluessenGenerierungAutomatisch = do
-    saveKeys <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
-    putStrLn "Schlüsselgenerierung abgeschlossen."
+schluessenGenerierung :: [Integer] -> [Char] -> IO ()
+schluessenGenerierung [p, q, e] datei = writeFile datei (quadupleToKeyString (generateKeys p q e))
 
--- Schlüsselgenerations-Option: [EingabePQE]
--- Hier wird der Schlüssel für den Nutzer durch Eingabe
--- beider Primzahlen und des ersten Exponenten.
-schluessenGenerierungEingabePQE = do
-    saveKeys <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
-    
 
-    putStrLn "Schlüsselgenerierung abgeschlossen."
 
--- Schlüsselgenerations-Option: [EingabePQ]
--- Hier wird der Schlüssel für den Nutzer durch Eingabe
--- beider Primzahlen berechnet. Die ermittlung des Exponenten E
--- erfolgt hierbei Automatisch
-schluessenGenerierungEingabePQ = do
-    saveKeys <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
-    putStrLn "Schlüsselgenerierung abgeschlossen."
 
 -- Überprüft, ob der erste String 'eingabe' nicht leer ist.
 -- Ist dies der Fall wird dieser zurückgegeben, ansonsten wird 'sonstigerName' zurückgegeben
+nichtLeer :: String -> String -> IO String
 nichtLeer eingabe sonstigerName 
     | eingabe == "" = return sonstigerName
     | otherwise     = return eingabe 
@@ -215,29 +234,3 @@ ersteVersionZuString n  | n == "1" = "Verschlüsseln"
                         | n == "2" = "Entschlüsseln"
                         | n == "3" = "Schlüssel generieren"
 
-wahlOptionKeyGenerierung = do
-        putStrLn "Wählen Sie nun zwischen den folgenden drei Optionen, um einen Schlüssel zu generieren. Tätigen Sie keine Eingabe, so wird die Option [AUTOMATISCH] gewählt:"
-        putStrLn "[1] Automatisch"
-        putStrLn "[2] Durch Eingabe der Primzahlen p und q durch eine Datei"
-        putStrLn "[3] Durch Eingabe der Primzahlen p/q und des Exponente e durch eine Datei"
-        option <- wahlOptionKeyGenerierungAbfrage False
-        return option
-
-wahlOptionKeyGenerierungAbfrage fehlerufruf 
-    | fehlerufruf = do
-        putStrLn "Ihre Eingabe ist ungültig, bitte versuchen Sie es erneut."
-        wahlOptionKeyGenerierungAbfrage False
-    | otherwise = do
-        putStr "Ihre Wahl: "
-        option <- getLine
-        if not (option == "" || option == "1" || option == "2" || option == "3") 
-            then
-                wahlOptionKeyGenerierungAbfrage True
-        else return option
-
-schluessenGenerierenOptionenZuString :: String -> String
-schluessenGenerierenOptionenZuString n  
-                        | n == "" = "Automatisch"
-                        | n == "1" = "Automatisch"
-                        | n == "2" = "Durch Eingabe der Primzahlen p und q durch eine Datei"
-                        | n == "3" = "Durch Eingabe der Primzahlen p/q und des Exponente e durch eine Datei"

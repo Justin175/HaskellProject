@@ -1,9 +1,9 @@
 module RandomUtils
 where 
-import Data.Time.Clock
 import Data.Char
 
-primes = [2673092556681*15^3048-2, 2673092556681*15^3048-4]
+-- map (^10000) [20..250] hat ca 4min gedauert -> Das sind gerade mal 40 Wörter
+
 -- Wandelt die Zeit im UTC-Format als String in eine Zahl um, indem Zeichen ausgelassen werden, die keine Ziffer sind:
 -- 2021-06-03 23:32:10.6951018 UTC -> 202106032332106951018
 utcToInteger :: [Char] -> Integer -- lines seperatiert einen String bei newline

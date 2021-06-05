@@ -1,4 +1,17 @@
+module Schluesselgenerierung
+where
 import Data.Time.Clock
+
+primes = [11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
+
+primesBig = [2673092556681*15^3048-2, 
+ 499490918065850301921197603564081112780623690273420984342968690594064612108591217229304461006005170865294466527166368851,
+    2673092556681*15^3048-4,
+    10513733234846849736873637829838635104309714688896631127438692162131857778044158273164093838937083421380041997,
+    506283312611011343355256478253272463245968105632679003983305635125224133331073348553775052064302641255435067238306718511,
+    35201546659608842026088328007565866231962578784643756647773109869245232364730066609837018108561065242031153677,
+    14083359469338511572632447718747493405040362318205860500297736061630222431052998057250747900577940212317413063,
+    15579763548573297857414066649875054392128789371879472432457450095645164702139048181789700140949438093329334293]
 
 erweiteter_euclid :: Integer -> Integer -> (Integer, Integer, Integer)
 erweiteter_euclid a b   | b == 0    = (a, 1, 0) 
@@ -18,61 +31,18 @@ get_2 (_, y, _) = y
 get_3 :: (x, y, z) -> z
 get_3 (_, _, z) = z
 
--- n :: Integer
--- n = 13 * 11
-
--- phiN :: Integer
--- phiN = 12 * 10
-
--- publicKey :: Integer -> Integer -> Integer -> (Integer, Integer)
--- publicKey p q e = if (e > 1 && e < phiN && (get_1 (erweiteter_euclid phiN e) == 1)) -- Nachher mit ggT ersetzen, siehe unten
---                   then (e, n) 
---                   else (0, 0)
---                     where
---                         n = p * q -- Später evtl. p, q einlesen und dann N und phiN als ,,globale Variable" (=Konstanten) definieren
---                         phiN = (p - 1) * (q - 1)
---                     --     ggT = (.) get_1 erweiteter_euclid Nochmal gucken wie man das richtig kompositioniert
-
--- privateKey :: Integer -> Integer -> Integer -> (Integer, Integer)
--- privateKey p q e = (d, n)
---                         where
---                             n = p * q
---                             phiN = (p - 1) * (q - 1)
---                             d = get_3 (erweiteter_euclid phiN e)
-
---p q e -> ((e, n), (d, n), Bool) wobei (e,n) der public und (d, n) der private Key ist. Bool gibt an ob die Generierung erfolgreich war.
-generateKeys :: Integer -> Integer -> Integer -> ((Integer, Integer), (Integer, Integer), Bool)
+generateKeys :: Integer -> Integer -> Integer -> (Integer,Integer,Integer, Bool)
 generateKeys p q e  | not (isPrime p && isPrime q) 
-                        || not (e > 1 && e < phiN && teilerfremd == 1) = ((0, 0), (0, 0), False) 
-                    | otherwise = ((e, n), (d, n), True)     
+                        || not (e > 1 && e < phiN && teilerfremd == 1) = (0, 0, 0, False) 
+                    | otherwise = (e, d, n, True)     
                         where
                             n = p * q
                             phiN = (p - 1) * (q - 1)
                             euklidRes = erweiteter_euclid phiN e
                             teilerfremd = get_1 euklidRes
-                            d = get_3 euklidRes
+                            d = replaceWithPositve (get_3 euklidRes) phiN
                             isPrime = (\n -> True)
 
--- fakultaet :: Integer -> Integer
--- fakultaet 0 = 1
--- fakultaet n = n * fakultaet (n - 1) 
-
--- binoRechner :: (Integer, Integer) -> Integer
--- binoRechner (n, k) = fakultaet n `div` (fakultaet k * fakultaet (n - k))
-
--- binoRechnerJr :: (Integer, Integer, Integer) -> Integer
--- binoRechnerJr (nFak, k, n) = nFak `div` (fakultaet k * fakultaet (n - k))
-
--- binoList :: Integer -> [Integer]
--- binoList n  = [binoRechnerJr (nFak, k, n) | k <- [2..(n-1)]]
---                 where
---                     nFak = fakultaet n
-
--- integerToFloating :: Integer -> Float
--- integerToFloating x = read (show x) :: Float
-
--- isPrime :: Integer -> Bool
--- isPrime n = mod  (sum (binoList n)) n == 0
-
--- isTest :: Integer -> Bool
--- isTest n = not (elem True (map (\x -> mod n x == 0) [k | k <- [2.. div n 2]]))
+replaceWithPositve :: Integer -> Integer -> Integer
+replaceWithPositve d phiN | d > 0 = d
+                          | otherwise = replaceWithPositve (d + phiN) phiN
