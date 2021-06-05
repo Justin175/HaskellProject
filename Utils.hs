@@ -26,7 +26,7 @@ intListToIntegerList list = map toInteger list
 
 -- Konvertiert eine Liste von Strings zu Zahlen
 stringListToIntegerList :: [String] -> [Integer]
-stringListToIntegerList list = map (\s -> read s ::Integer) list
+stringListToIntegerList list = map (\s -> read s :: Integer) list
 
 -- split :: Char -> String -> [String]
 -- split delimiter toSplit = [x | let index <- ]
@@ -84,6 +84,7 @@ integerListToCharString list = map integerToChar list
 
 integerToChar :: Integer -> Char
 integerToChar n = toEnum (read $ show n :: Int) :: Char
+--integerToChar n = chr (fromIntegral n)
 
 quadupleToKeyString :: (Show a, Show b, Show c) => (a, b, c, d) -> String
 quadupleToKeyString (x, y, z, _) = show x ++ "\n" ++ show y ++ "\n" ++ show z

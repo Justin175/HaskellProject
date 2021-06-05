@@ -65,7 +65,7 @@ optionVerschluesseln = do
     ausgabeDatei <- nichtLeer ausgabeDatei (zuVerschluesselndeDatei ++ ".encry")
     
     putStrLn ""
-    putStrLn "Die Verschlüsselung beginnt nun. Dieser Prozess kann einige Zeit in Anspruch nehmen, bitte haben Sie Geduld."
+    putStrLn "Die Verschlüsselung beginnt nun. Dieser Prozess kann einige Zeit in Anspruch nehmen. Bitte haben Sie etwas Geduld."
     putStrLn "Infos:"
     putStrLn ("  Schlüssel-Datei            : " ++ schluesselDatei)
     putStrLn ("  Zu Verschlüsselnde-Datei   : " ++ zuVerschluesselndeDatei)
@@ -109,18 +109,19 @@ optionEntschluesseln = do
     putStrLn ("  Schlüssel-Datei            : " ++ schluesselDatei)
     putStrLn ("  Zu Entschlüsselnde-Datei   : " ++ zuEntschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
-
+    
    -- Öffne Schlüssel-Handler und lese content
     schluesselDateiHandle <- openFile schluesselDatei ReadMode
     schluesselDateiContent <- hGetContents schluesselDateiHandle
-    putStrLn "1"
+
+    putStrLn schluesselDateiContent
     -- Öffne EntschlüsselndeDatei-Handler und lese content
     zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
     zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
-    putStrLn "2"
+    putStrLn zuEntschluesselndeDateiContent
     -- Schreibe das Entschlüsselte
     writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
-    putStrLn "3"
+    
     -- Handler schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
     hClose zuEntschluesselndeDateiHandler
@@ -209,25 +210,20 @@ dateiAbfrage nachricht = do
 -- Hier wird die Ausgabe, der der zuerst wählenden Option, ausgegeben.
 -- Hiernach wird die gewählte Option des Nutzers eingelesen und zurückgegeben.
 -- Ist die Eingabe ungültig, so wird nach einer erneuten Eingabe gebeten
+
+wahlDerErstenOption :: IO String
 wahlDerErstenOption = do
-        putStrLn "Wählen Sie nun zwischen den folgenden drei Optionen um fortzufahren:"
+        putStrLn "Wählen Sie zwischen den folgenden drei Optionen um fortzufahren:"
         putStrLn "[1] Verschlüsseln"
         putStrLn "[2] Entschlüsseln"
         putStrLn "[3] Schlüssel generieren"
-        option <- wahlDerErstenOptionAbfrage False
-        return option
-
-wahlDerErstenOptionAbfrage fehlerufruf 
-    | fehlerufruf = do
-        putStrLn "Ihre Eingabe ist ungültig, bitte versuchen Sie es erneut."
-        wahlDerErstenOptionAbfrage False
-    | otherwise = do
-        putStr "Ihre Wahl: "
         option <- getLine
         if not (option == "1" || option == "2" || option == "3") 
-            then
-                wahlDerErstenOptionAbfrage True
+            then do
+                putStrLn "Ich kenne nur 1, 2 oder 3"
+                wahlDerErstenOption
         else return option
+
 
 ersteVersionZuString :: String -> String
 ersteVersionZuString n  | n == "1" = "Verschlüsseln"
