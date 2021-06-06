@@ -33,9 +33,7 @@ import Schluesselgenerierung
 --              - Wo sollen die Schlüssel gespeichert werden?
 --              - Schlüssel speichern
 
-main = do -- WICHTIG: Wir lesen Verschlüsselungsschlüssel aus einer Datei ein, die beide Schlüssel enthält, was in der Praxis aber nicht der Fall sein kann
--- Also entweder Benutzer Bescheid geben, dass eine leere Zeile entsprechend hin muss oder andere Lösung finden.
--- Erfolgreiche Generierung noch prüfen (also ob e passt)
+main = do 
     putStrLn "Willkommen beim RSA-Projekt von Dung Tien Nuygen und Justin Treulieb."
 
     -- Zuerst wird die Option gewählt, was der Nutzer im weiteren Verlauf des Programmes machen möchte
@@ -120,10 +118,10 @@ entschluesseln = do
     -- Öffne EntschlüsselndeDatei-Handler und lese content
     zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
     zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
-
+    
     -- Schreibe das Entschlüsselte
     writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
-    
+
     -- Handler schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
     hClose zuEntschluesselndeDateiHandler
@@ -137,17 +135,20 @@ schluesselGenerieren = do
     putStrLn "Wenn Sie ENTER drücken, werden automatisch die beiden Schlüssel generiert."
     putStrLn "Sie können jedoch auch eigene Primzahlen p, q und optional eine Zahl e mit ggT(e, phi(p*q)) = 1 wählen." 
     putStrLn "Dazu geben Sie den Dateinamen an, in der diese Zahlen untereinander stehen"
-    primzahlDatei <- getLine
-    putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
-    speicherSchluessel <- getLine
-    speicherAuswahl <- generiereAusgabeDatei speicherSchluessel "rsaKeys.txt"
+    primzahlDatei <- quelldateiAbfrage ""
+    putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der der öffentliche Schlüssel gespeichert werden soll. Andernfalls wird eine Datei automatisch erstellt."
+    publicKeyInput <- getLine
+    publicKeyFile <- generiereAusgabeDatei publicKeyInput "publicKey.txt"
+    putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der der private Schlüssel gespeichert werden soll. Andernfalls wird eine Datei automatisch erstellt."
+    privateKeyInput <- getLine
+    privateKeyFile <- generiereAusgabeDatei publicKeyInput "privateKey.txt"
 
     if(primzahlDatei == "")
         then do
             utc1 <- getCurrentTime
             putStrLn "Schlüssel werden nun generiert"
             utc2 <- getCurrentTime
-            putStrLn ("Sie werden in " ++ speicherAuswahl ++ " gespeichert") 
+            putStrLn ("Sie werden in " ++ publicKeyFile ++ " und "++ privateKeyFile ++ " gespeichert") 
             utc3 <- getCurrentTime
 
             let rand1 = fromIntegral (rng (utcToInteger (show utc1)) (0, toInteger (length primes - 1)))
@@ -158,9 +159,9 @@ schluesselGenerieren = do
                 listeTeilerdremdZuPhiN = [x | x <- [2.. (phiN - 1)], get_1 (erweiteterEuklid phiN x) == 1]
                 e = listeTeilerdremdZuPhiN !! (fromIntegral (rng (utcToInteger (show utc3)) (0, fromIntegral $ length listeTeilerdremdZuPhiN)))
             
-            putStrLn (show p ++ " " ++ show q ++ " " ++ show e)
 
-            schluessenGenerierung [p, q, e] speicherAuswahl
+            schluesselGenerierung [p, q, e] publicKeyFile privateKeyFile
+            putStrLn "Schlüsselgenerierung abgeschlossen."
         else do
             primzahlDateiHandle <- openFile primzahlDatei ReadMode
             primzahlDateiContent <- hGetContents primzahlDateiHandle
@@ -172,19 +173,37 @@ schluesselGenerieren = do
                     utc <- getCurrentTime
 
                     let phiN = (head primzahlDateiAlsListe - 1) * (last primzahlDateiAlsListe - 1)
-                    schluessenGenerierung (take 2 primzahlDateiAlsListe ++ (rng (utcToInteger (show utc)) (1, phiN - 1)) : []) speicherAuswahl
-  
+                        listeTeilerdremdZuPhiN = [x | x <- [2.. (phiN - 1)], get_1 (erweiteterEuklid phiN x) == 1]
+                        e = listeTeilerdremdZuPhiN !! (fromIntegral (rng (utcToInteger (show utc)) (0, fromIntegral $ length listeTeilerdremdZuPhiN)))
+                    
+                    schluesselGenerierung (take 2 primzahlDateiAlsListe ++ e : []) publicKeyFile privateKeyFile
+                    hClose primzahlDateiHandle
+                    putStrLn "Schlüsselgenerierung abgeschlossen."
                 else do -- p,q und e stehen drinne
-                    schluessenGenerierung (take 3 primzahlDateiAlsListe) speicherAuswahl
-            hClose primzahlDateiHandle
+                    eIstOk <- schluesselGenerierung (take 3 primzahlDateiAlsListe) publicKeyFile privateKeyFile
+                    if(eIstOk)
+                        then do
+                            hClose primzahlDateiHandle
+                            putStrLn "Schlüsselgenerierung abgeschlossen."
+                        else do
+                            putStrLn "Die Zahl e erfüllt nicht die erforderlichen Bedingungen"
+                            putStrLn "Schlüsselgenerierung fehlgeschlagen. Bitte versuchen Sie es erneut"
+                            schluesselGenerieren
 
-    putStrLn "Schlüsselgenerierung abgeschlossen."                
+                    
+
 
 
 -- Schlüsselgenerations-Option: [Automatisch]
 -- Hier wird der Schlüssel für den Nutzer Automatisch generiert
-schluessenGenerierung :: [Integer] -> [Char] -> IO ()
-schluessenGenerierung [p, q, e] datei = writeFile datei (quadupleToKeyString (generateKeys p q e))
+schluesselGenerierung :: [Integer] -> [Char] -> [Char] -> IO Bool
+schluesselGenerierung [p, q, e] pub priv = do
+                                        let res = generateKeys p q e
+                                            pubKey = show (get_1Q res) ++ "\n" ++ (show (get_3Q res))
+                                            privKey = show (get_2Q res) ++ "\n" ++ (show (get_3Q res))
+                                        writeFile pub pubKey
+                                        writeFile priv privKey
+                                        return (get_4Q res)
 
 
 -- Überprüft, ob der erste String 'eingabe' nicht leer ist.
@@ -197,7 +216,11 @@ generiereAusgabeDatei eingabe sonstigerName
 -- Hier wird nach der Datei gefragt, in der sich die / der Schlüssel befindet
 quelldateiAbfrage :: String -> IO String
 quelldateiAbfrage quelle = do
-    putStrLn ("Geben Sie den Namen / (relativen) Pfad der Datei an, in dem sich " ++ quelle ++ " befindet")
+    if(quelle == "")
+        then
+            putStrLn ""
+        else
+            putStrLn ("Geben Sie den Namen / (relativen) Pfad der Datei an, in dem sich " ++ quelle ++ " befindet")
     datei <- getLine
     dateiExistiert <- doesFileExist datei
     if(not dateiExistiert)

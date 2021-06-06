@@ -35,6 +35,19 @@ get_2 (_, y, _) = y
 get_3 :: (x, y, z) -> z
 get_3 (_, _, z) = z
 
+-- Die nachfolgenden 4 Funktionen get_nQ liefern die n.te Komponente aus einem Quadrupel mit n = 1, 2, 3, 4
+get_1Q :: (a, b, c, d) -> a
+get_1Q (a, _, _, _) = a
+
+get_2Q :: (a, b, c, d) -> b
+get_2Q (_, b, _, _) = b
+
+get_3Q :: (a, b, c, d) -> c
+get_3Q (_, _, c, _) = c
+
+get_4Q :: (a, b, c, d) -> d
+get_4Q (_, _, _, d) = d
+
 generateKeys :: Integer -> Integer -> Integer -> (Integer,Integer,Integer, Bool)
 generateKeys p q e  | not (e > 1 && e < phiN && teilerfremd == 1) = (0, 0, 0, False) 
                     | otherwise = (e, d, n, True)     
