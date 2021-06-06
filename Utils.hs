@@ -2,6 +2,11 @@ module Utils
 where 
 import Data.Char
 
+getPublicKeyFromList :: [Integer] -> (Integer, Integer)
+getPublicKeyFromList [p, n] = (p, n)
+
+getPrivateKeyFromList :: [Integer] -> (Integer, Integer)
+getPrivateKeyFromList [p, n] = (p, n)
 
 -- Konvertiert eine Liste von Integern zu einem String
 -- Die einzelnen Elemente werden mit dem seperator getrennt
@@ -28,12 +33,6 @@ intListToIntegerList list = map toInteger list
 -- Konvertiert eine Liste von Strings zu Zahlen
 stringListToIntegerList :: [String] -> [Integer]
 stringListToIntegerList list = map (\s -> read s :: Integer) list
-
-getPublicKeyFromList :: [Integer] -> (Integer, Integer)
-getPublicKeyFromList [p, n] = (p, n)
-
-getPrivateKeyFromList :: [Integer] -> (Integer, Integer)
-getPrivateKeyFromList [p, n] = (p, n)
 
 integerListToCharString :: [Integer] -> String
 integerListToCharString list = map integerToChar list

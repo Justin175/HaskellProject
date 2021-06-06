@@ -4,15 +4,6 @@ where
 -- Enthält zweistellige Primzahlen, von denen bei der Schlüsselgenerierung zwei zufällig entnommen werden
 primes = [11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
 
--- primesBig = [2673092556681*15^3048-2, 
---  499490918065850301921197603564081112780623690273420984342968690594064612108591217229304461006005170865294466527166368851,
---     2673092556681*15^3048-4,
---     10513733234846849736873637829838635104309714688896631127438692162131857778044158273164093838937083421380041997,
---     506283312611011343355256478253272463245968105632679003983305635125224133331073348553775052064302641255435067238306718511,
---     35201546659608842026088328007565866231962578784643756647773109869245232364730066609837018108561065242031153677,
---     14083359469338511572632447718747493405040362318205860500297736061630222431052998057250747900577940212317413063,
---     15579763548573297857414066649875054392128789371879472432457450095645164702139048181789700140949438093329334293]
-
 -- Führt den erweiterten Euklidischen Algorithmus auf zwei ganze Zahlen aus
 -- Die ersten beiden Parameter sind zwei ganze Zahlen a und b
 -- RETURN: Tripel (x, y, z) mit x = ggT(a, b), und a * y + b * z = x
@@ -61,12 +52,12 @@ generateKeys p q e  | not (e > 1 && e < phiN && teilerfremd == 1) = (0, 0, 0, Fa
                             phiN = (p - 1) * (q - 1)
                             euklidRes = erweiteterEuklid phiN e
                             teilerfremd = get_1 euklidRes
-                            d = replaceWithPositve (get_3 euklidRes) phiN
+                            d = ensurePositiveCongruence (get_3 euklidRes) phiN
 
 -- 
-replaceWithPositve :: Integer -> Integer -> Integer
-replaceWithPositve d phiN | d > 0 = d
-                          | otherwise = replaceWithPositve (d + phiN) phiN
+ensurePositiveCongruence :: Integer -> Integer -> Integer
+ensurePositiveCongruence d phiN | d > 0 = d
+                          | otherwise = ensurePositiveCongruence (d + phiN) phiN
 
 -- Wandelt die Zeit im UTC-Format als String in eine Zahl um, indem Zeichen ausgelassen werden, die keine Ziffer sind:
 -- 2021-06-03 23:32:10.6951018 UTC -> 202106032332106951018
