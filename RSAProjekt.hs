@@ -41,10 +41,10 @@ main = do
     putStrLn ("Sie haben die folgende Option gewählt: " ++ option ++ " [" ++ (ersteVersionZuString option) ++ "]")
     putStrLn ""
 
-    --Aus Basis der Option wird jetzt die dazugehörige Methode aufgerufen
+    --Aus Basis der Option wird jetzt die dazugehörige Funktion aufgerufen
     optionAusfuehren option
 
--- Diese Funktion führt je nach gewähler Option, die dazugehörige Methode aus
+-- Diese Funktion führt je nach gewähler Option, die dazugehörige Funktion aus
 optionAusfuehren option
     | option == "1" = verschluesseln
     | option == "2" = entschluesseln
@@ -60,7 +60,7 @@ verschluesseln = do
     -- Name / Pfad der zu verschlüsselnden Datei einlesen
     zuVerschluesselndeDatei <- quelldateiAbfrage "der zu verschlüsselnde Text"
 
-    -- fragen ob die Ausgabe-Datei automatisch generiert werden soll oder manuell eingeben werden soll
+    -- fragen ob die Ausgabe-Datei automatisch generiert werden soll oder manuell eingeben wird
     putStrLn "Geben Sie den Namen der Datei an, in der die verschlüsselten Daten gespeichert werden sollen. Wird hier nichts eingegeben, so wird automatisch eine Datei generiert."
     ausgabeDatei <- getLine
     ausgabeDatei <- generiereAusgabeDatei ausgabeDatei (zuVerschluesselndeDatei ++ ".encry")
@@ -72,20 +72,20 @@ verschluesseln = do
     putStrLn ("  Zu Verschlüsselnde-Datei   : " ++ zuVerschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
 
-    -- Öffne Schlüssel-Handler und lese content
+    -- Öffne Schlüssel-Handle und lese content
     schluesselDateiHandle <- openFile schluesselDatei ReadMode
     schluesselDateiContent <- hGetContents schluesselDateiHandle
 
-    -- Öffne VerschlüsselndeDatei-Handler und lese content
-    zuVerschluesselndeDateiHandler <- openFile zuVerschluesselndeDatei ReadMode
-    zuVerschluesselndeDateiContent <- hGetContents zuVerschluesselndeDateiHandler
+    -- Öffne VerschlüsselndeDatei-Handle und lese content
+    zuVerschluesselndeDateiHandle <- openFile zuVerschluesselndeDatei ReadMode
+    zuVerschluesselndeDateiContent <- hGetContents zuVerschluesselndeDateiHandle
 
     --encrypted <- return getPulblicKeyFromList (stringListToIntegerList (words schluesselDateiContent))
     writeFile ausgabeDatei (integerListToString (encrypt (getPublicKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (charListToAsciiIntegerList zuVerschluesselndeDateiContent)) " ")
 
-    -- Handler schließen (Schlüsseldatei)
+    -- Handle schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
-    hClose zuVerschluesselndeDateiHandler
+    hClose zuVerschluesselndeDateiHandle
 
     putStrLn "Die Verschlüsselung wurde erfolgreich abgeschlossen."
 
@@ -111,20 +111,20 @@ entschluesseln = do
     putStrLn ("  Zu Entschlüsselnde-Datei   : " ++ zuEntschluesselndeDatei)
     putStrLn ("  Ausgabe-Datei              : " ++ ausgabeDatei)
     
-   -- Öffne Schlüssel-Handler und lese content
+   -- Öffne Schlüssel-Handle und lese content
     schluesselDateiHandle <- openFile schluesselDatei ReadMode
     schluesselDateiContent <- hGetContents schluesselDateiHandle
 
-    -- Öffne EntschlüsselndeDatei-Handler und lese content
-    zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
-    zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
+    -- Öffne EntschlüsselndeDatei-Handle und lese content
+    zuEntschluesselndeDateiHandle <- openFile zuEntschluesselndeDatei ReadMode
+    zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandle
     
     -- Schreibe das Entschlüsselte
     writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
 
-    -- Handler schließen (Schlüsseldatei)
+    -- Handle schließen (Schlüsseldatei)
     hClose schluesselDateiHandle
-    hClose zuEntschluesselndeDateiHandler
+    hClose zuEntschluesselndeDateiHandle
 
     putStrLn "Die Entschlüsselung wurde erfolgreich abgeschlossen."
 

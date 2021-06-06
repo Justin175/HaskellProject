@@ -15,7 +15,7 @@ primes = [11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
 
 -- Führt den erweiterten Euklidischen Algorithmus auf zwei ganze Zahlen aus
 -- Die ersten beiden Parameter sind zwei ganze Zahlen a und b
--- RETURN: Triple (x, y, z) mit x = ggT(a, b), und a * y + b * z = x
+-- RETURN: Tripel (x, y, z) mit x = ggT(a, b), und a * y + b * z = x
 erweiteterEuklid :: Integer -> Integer -> (Integer, Integer, Integer)
 erweiteterEuklid a b   | b == 0    = (a, 1, 0) 
                        | otherwise = (x, z, y - div a b * z)
@@ -48,6 +48,11 @@ get_3Q (_, _, c, _) = c
 get_4Q :: (a, b, c, d) -> d
 get_4Q (_, _, _, d) = d
 
+
+-- Erzeugt die für die Schlüssel relevanten Werte e, d, und N und gibt darüber Auskunft, ob die Generierung geklappt hat
+-- Die ersten beiden Parameter sind die (Prim)Zahlen, die für die Konstruktion der Schlüssel verwendet werden sollen
+-- Der dritte Parameter e ist eine Zahl, die die erste Komponente des öffentlichen Schlüssels bildet, wenn 1 < e < phi(N) und ggT(e, phi(N)) == 1 gilt
+-- RETURN: Quadrupel (e, d, N, b) mit b := Schlüsselgenerierung ist erfolgreich
 generateKeys :: Integer -> Integer -> Integer -> (Integer,Integer,Integer, Bool)
 generateKeys p q e  | not (e > 1 && e < phiN && teilerfremd == 1) = (0, 0, 0, False) 
                     | otherwise = (e, d, n, True)     
@@ -62,3 +67,19 @@ generateKeys p q e  | not (e > 1 && e < phiN && teilerfremd == 1) = (0, 0, 0, Fa
 replaceWithPositve :: Integer -> Integer -> Integer
 replaceWithPositve d phiN | d > 0 = d
                           | otherwise = replaceWithPositve (d + phiN) phiN
+
+-- Wandelt die Zeit im UTC-Format als String in eine Zahl um, indem Zeichen ausgelassen werden, die keine Ziffer sind:
+-- 2021-06-03 23:32:10.6951018 UTC -> 202106032332106951018
+-- RETURN: Zahl die sich aus den Zahlen im UTC-String zusammensetzt
+utcToInteger :: [Char] -> Integer 
+utcToInteger utc = read (filter istZiffer utc) :: Integer
+                    where
+                        istZiffer = (\c -> ord c >= ord '0' && ord c <= ord '9')
+
+-- Erzeugt eine Zufallszahl ausgehend von einem Startwert (=Seed) und einem Tupel, 
+-- welches dem erlaubten geschlossenen Intervall entspricht, in dem die Zufallszahl liegen darf
+-- Der erste Parameter ist der Seed
+-- Der zweite Parameter ist das geschlossene Intervall als Tupel
+-- RETURN: Zufällige Zahl im Intervall (lowerBound, upperBound)
+rng :: Integer -> (Integer, Integer) -> Integer
+rng seed (lowerBound, upperBound) = mod (seed + 283647013) (upperBound - lowerBound + 1) + lowerBound
