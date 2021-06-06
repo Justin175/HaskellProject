@@ -1,5 +1,6 @@
 module Schluesselgenerierung
 where
+import Data.Char
 
 -- Enthält zweistellige Primzahlen, von denen bei der Schlüsselgenerierung zwei zufällig entnommen werden
 primes = [11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
