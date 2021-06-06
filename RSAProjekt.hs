@@ -1,9 +1,10 @@
 import System.IO
+import System.Directory
+import Data.Time.Clock
 import Utils
 import Encryption
-import RandomUtils
 import Schluesselgenerierung
-import Data.Time.Clock
+
 
 -- --------------- PROGRAMM-ABLAUF (BASIS)
 -- Willkommen
@@ -32,37 +33,39 @@ import Data.Time.Clock
 --              - Wo sollen die Schlüssel gespeichert werden?
 --              - Schlüssel speichern
 
-main = do
+main = do -- WICHTIG: Wir lesen Verschlüsselungsschlüssel aus einer Datei ein, die beide Schlüssel enthält, was in der Praxis aber nicht der Fall sein kann
+-- Also entweder Benutzer Bescheid geben, dass eine leere Zeile entsprechend hin muss oder andere Lösung finden.
+-- Erfolgreiche Generierung noch prüfen (also ob e passt)
     putStrLn "Willkommen beim RSA-Projekt von Dung Tien Nuygen und Justin Treulieb."
 
     -- Zuerst wird die Option gewählt, was der Nutzer im weiteren Verlauf des Programmes machen möchte
-    option <- wahlDerErstenOption
+    option <- wahlFunktionalitaet
     putStrLn ("Sie haben die folgende Option gewählt: " ++ option ++ " [" ++ (ersteVersionZuString option) ++ "]")
     putStrLn ""
 
     --Aus Basis der Option wird jetzt die dazugehörige Methode aufgerufen
-    executeOption option
+    optionAusfuehren option
 
 -- Diese Funktion führt je nach gewähler Option, die dazugehörige Methode aus
-executeOption option
-    | option == "1" = optionVerschluesseln
-    | option == "2" = optionEntschluesseln
-    | option == "3" = optionGeneriereSchluessel
+optionAusfuehren option
+    | option == "1" = verschluesseln
+    | option == "2" = entschluesseln
+    | option == "3" = schluesselGenerieren
 
 -- Diese Funktion übernimmt hier die OPTION verschlüsseln:
 -- Hier wird nach den Schlüsseln und nach der zu verschlüsselnden Datei gefragt,
 -- die im weiteren Verlauf verschlüsselt und neu gespeichert wird.
-optionVerschluesseln = do
+verschluesseln = do
     -- Name / Pfad der Schlüsseldatei einlesen
-    schluesselDatei <- frageNachSchluesselDatei
+    schluesselDatei <- quelldateiAbfrage "der öffentliche Schlüssel"
 
     -- Name / Pfad der zu verschlüsselnden Datei einlesen
-    zuVerschluesselndeDatei <- dateiAbfrage "Welche Datei soll verschlüsselt werden? Geben Sie dazu den Namen / (relativen) Pfad der Datei an."
+    zuVerschluesselndeDatei <- quelldateiAbfrage "der zu verschlüsselnde Text"
 
     -- fragen ob die Ausgabe-Datei automatisch generiert werden soll oder manuell eingeben werden soll
-    putStrLn "Geben Sie den Namen der Datei an, in der die verschlüsselten Daten gespeichert werden sollen. Wird hier nichts eingegeben, so wird automatisch ein Name generiert."
+    putStrLn "Geben Sie den Namen der Datei an, in der die verschlüsselten Daten gespeichert werden sollen. Wird hier nichts eingegeben, so wird automatisch eine Datei generiert."
     ausgabeDatei <- getLine
-    ausgabeDatei <- nichtLeer ausgabeDatei (zuVerschluesselndeDatei ++ ".encry")
+    ausgabeDatei <- generiereAusgabeDatei ausgabeDatei (zuVerschluesselndeDatei ++ ".encry")
     
     putStrLn ""
     putStrLn "Die Verschlüsselung beginnt nun. Dieser Prozess kann einige Zeit in Anspruch nehmen. Bitte haben Sie etwas Geduld."
@@ -91,17 +94,17 @@ optionVerschluesseln = do
 -- Diese Funktion übernimmt hier die OPTION Entschlüsseln:
 -- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
 -- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
-optionEntschluesseln = do
+entschluesseln = do
     -- Name / Pfad der Schlüsseldatei einlesen
-    schluesselDatei <- frageNachSchluesselDatei
+    schluesselDatei <- quelldateiAbfrage "der private Schlüssel"
 
     -- Name / Pfad der zu entschlüsselnden Datei einlesen
-    zuEntschluesselndeDatei <- dateiAbfrage "Welche Datei soll entschlüsselt werden? Geben Sie dazu den Namen / (relativen) Pfad der Datei an."
+    zuEntschluesselndeDatei <- quelldateiAbfrage "der zu entschlüsselnde Text"
 
     -- fragen ob die Ausgabe-Datei automatisch generiert werden soll oder manuell eingeben werden soll
-    putStrLn "Geben Sie den Namen der Datei an, in der die entschlüsselten Daten gespeichert werden sollen. Wird hier nichts eingegeben, so wird automatisch ein Name generiert."
+    putStrLn "Geben Sie den Namen der Datei an, in der die entschlüsselten Daten gespeichert werden sollen. Wird hier nichts eingegeben, so wird automatisch eine Datei generiert."
     ausgabeDatei <- getLine
-    ausgabeDatei <- nichtLeer ausgabeDatei (zuEntschluesselndeDatei ++ ".decry")
+    ausgabeDatei <- generiereAusgabeDatei ausgabeDatei (zuEntschluesselndeDatei ++ ".decry")
     
     putStrLn ""
     putStrLn "Die Entschlüsselung beginnt nun. Dieser Prozess kann einige Zeit in Anspruch nehmen, bitte haben Sie Geduld."
@@ -114,11 +117,10 @@ optionEntschluesseln = do
     schluesselDateiHandle <- openFile schluesselDatei ReadMode
     schluesselDateiContent <- hGetContents schluesselDateiHandle
 
-    putStrLn schluesselDateiContent
     -- Öffne EntschlüsselndeDatei-Handler und lese content
     zuEntschluesselndeDateiHandler <- openFile zuEntschluesselndeDatei ReadMode
     zuEntschluesselndeDateiContent <- hGetContents zuEntschluesselndeDateiHandler
-    putStrLn zuEntschluesselndeDateiContent
+
     -- Schreibe das Entschlüsselte
     writeFile ausgabeDatei (integerListToCharString (decrypt (getPrivateKeyFromList (stringListToIntegerList (lines schluesselDateiContent))) (stringListToIntegerList (words zuEntschluesselndeDateiContent))))
     
@@ -131,13 +133,14 @@ optionEntschluesseln = do
 -- Diese Funktion übernimmt hier die OPTION Schlüssengenerierung:
 -- Hier wird nach den Schlüsseln und nach der zu entschlüsselnden Datei gefragt,
 -- die im weiteren Verlauf entschlüsselt und neu gespeichert wird.
-optionGeneriereSchluessel = do
+schluesselGenerieren = do
     putStrLn "Wenn Sie ENTER drücken, werden automatisch die beiden Schlüssel generiert."
     putStrLn "Sie können jedoch auch eigene Primzahlen p, q und optional eine Zahl e mit ggT(e, phi(p*q)) = 1 wählen." 
     putStrLn "Dazu geben Sie den Dateinamen an, in der diese Zahlen untereinander stehen"
     primzahlDatei <- getLine
-    speicherSchluessel <- dateiAbfrage "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
-    speicherAuswahl <- nichtLeer speicherSchluessel "rsaKeys.txt"
+    putStrLn "Ok, geben Sie nun den Namen der Datei ein, in der die Schlüssel gespeichert werden sollen. Andernfalls wird eine Datei automatisch erstellt."
+    speicherSchluessel <- getLine
+    speicherAuswahl <- generiereAusgabeDatei speicherSchluessel "rsaKeys.txt"
 
     if(primzahlDatei == "")
         then do
@@ -152,15 +155,13 @@ optionGeneriereSchluessel = do
                 p = primes !! rand1
                 q = primes !! rand2
                 phiN = (p - 1) * (q - 1)
-                listeTeilerdremdZuPhiN = [x | x <- [2.. (phiN - 1)], get_1 (erweiteter_euclid phiN x) == 1]
+                listeTeilerdremdZuPhiN = [x | x <- [2.. (phiN - 1)], get_1 (erweiteterEuklid phiN x) == 1]
                 e = listeTeilerdremdZuPhiN !! (fromIntegral (rng (utcToInteger (show utc3)) (0, fromIntegral $ length listeTeilerdremdZuPhiN)))
             
             putStrLn (show p ++ " " ++ show q ++ " " ++ show e)
 
             schluessenGenerierung [p, q, e] speicherAuswahl
         else do
-            --dateiContent <- readFile typeOfKeyGen -- Content der Datei mit den Primzahlen (+ ggf. e) einlesen
-            -- Öffne Datei mit den Primzahlen und lese den inhalt
             primzahlDateiHandle <- openFile primzahlDatei ReadMode
             primzahlDateiContent <- hGetContents primzahlDateiHandle
 
@@ -172,8 +173,7 @@ optionGeneriereSchluessel = do
 
                     let phiN = (head primzahlDateiAlsListe - 1) * (last primzahlDateiAlsListe - 1)
                     schluessenGenerierung (take 2 primzahlDateiAlsListe ++ (rng (utcToInteger (show utc)) (1, phiN - 1)) : []) speicherAuswahl
-                        -- where
-                        --     
+  
                 else do -- p,q und e stehen drinne
                     schluessenGenerierung (take 3 primzahlDateiAlsListe) speicherAuswahl
             hClose primzahlDateiHandle
@@ -187,32 +187,30 @@ schluessenGenerierung :: [Integer] -> [Char] -> IO ()
 schluessenGenerierung [p, q, e] datei = writeFile datei (quadupleToKeyString (generateKeys p q e))
 
 
-
-
 -- Überprüft, ob der erste String 'eingabe' nicht leer ist.
 -- Ist dies der Fall wird dieser zurückgegeben, ansonsten wird 'sonstigerName' zurückgegeben
-nichtLeer :: String -> String -> IO String
-nichtLeer eingabe sonstigerName 
+generiereAusgabeDatei :: String -> String -> IO String
+generiereAusgabeDatei eingabe sonstigerName 
     | eingabe == "" = return sonstigerName
     | otherwise     = return eingabe 
 
 -- Hier wird nach der Datei gefragt, in der sich die / der Schlüssel befindet
-frageNachSchluesselDatei = do
-    datei <- dateiAbfrage "Geben Sie den Namen / (relativen) Pfad der Datei an, in dem sich der bzw. die Schlüssel befinden."
-    return datei
-
--- Fragt eine Datei ab und gibt die Eingabe des Nutzers wieder
-dateiAbfrage nachricht = do 
-    putStrLn nachricht
+quelldateiAbfrage :: String -> IO String
+quelldateiAbfrage quelle = do
+    putStrLn ("Geben Sie den Namen / (relativen) Pfad der Datei an, in dem sich " ++ quelle ++ " befindet")
     datei <- getLine
-    return datei
+    dateiExistiert <- doesFileExist datei
+    if(not dateiExistiert)
+        then do
+            putStrLn ("Die Datei " ++ datei ++" konnte nicht gefunden werden.")
+            quelldateiAbfrage quelle
+        else
+            return datei
 
--- Hier wird die Ausgabe, der der zuerst wählenden Option, ausgegeben.
--- Hiernach wird die gewählte Option des Nutzers eingelesen und zurückgegeben.
+-- Hier wählt der Benutzer die gewünschte Funktionalität aus
 -- Ist die Eingabe ungültig, so wird nach einer erneuten Eingabe gebeten
-
-wahlDerErstenOption :: IO String
-wahlDerErstenOption = do
+wahlFunktionalitaet :: IO String
+wahlFunktionalitaet = do
         putStrLn "Wählen Sie zwischen den folgenden drei Optionen um fortzufahren:"
         putStrLn "[1] Verschlüsseln"
         putStrLn "[2] Entschlüsseln"
@@ -221,7 +219,7 @@ wahlDerErstenOption = do
         if not (option == "1" || option == "2" || option == "3") 
             then do
                 putStrLn "Ich kenne nur 1, 2 oder 3"
-                wahlDerErstenOption
+                wahlFunktionalitaet
         else return option
 
 
