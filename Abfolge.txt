@@ -13,3 +13,13 @@ Schlüsselgenerierung p q e  | !(isPrime p && isPrime q)          = (0, 0, 0)
                             | otherwise                          = BERECHNE Schlüssel
                                  where
                                     phiN = (p - 1) * (q - 1)
+
+Eingabe = [Char] --Text
+
+toAscii :: [Char] -> [Integer] 
+Ausgabe = encrypt [Integer]...
+
+decrypt [Integer]-> [Integer]
+
+backtoText [Integer] -> [Char]
+

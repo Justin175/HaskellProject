@@ -1,3 +1,6 @@
+module Encryption
+where
+
 -- Verschlüsselt eine Liste von ganzen Zahlen
 -- Erste Paramenter ist der Öffentliche Schlüssel, hier dargestellt als Tuple
 -- Zweite Parameter nimmt die Liste von Zahlen, die Verschlüsselt werden sollen

@@ -1,0 +1,13 @@
+-.encry .txt muss es sein oder
+-Glaube vorallem am Anfang ists etwas sehr umständlich
+programmiert, bzw. sehr viel hin und her. 
+-Signatur mitangeben
+
+-getPublicKeyFromList evtl. abändern bzw.
+
+Bei Schluesselgenerierung:
+-Optionen weg, man liest entweder eine Datei ein oder keine -> keine umständliche Auswahl von optionen
+-Nach der Eingabe wird direkt gefragt in welche Ausgabe Datei es reinkommen soll 
+
+Sei p=x^2+1, dann ist ein hinreichendes Kriterium:
+a^(p-1)=1 mod p und a^x=/=1 mod p
